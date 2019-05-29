@@ -1,0 +1,25 @@
+{
+  "pattern_type": 1,
+  "pattern_size": 25,
+  "num_boards": 1,
+  "camera1": {
+    "detect_method": 2,
+    "norm": true,
+    "norm_half_kernel_size": 64,
+    "radius": [5, 7, 9],
+    "init_loc_thr": 0.01,
+    "polynomial_fit_half_kernel_size": 4,
+    "score_thr": 0.01,
+    "show_cornres": false
+  },
+  "camera2": {
+    "detect_method": 2,
+    "norm": false,
+    "norm_half_kernel_size": 64,
+    "radius": [7, 9, 11],
+    "init_loc_thr": 0.01,
+    "polynomial_fit_half_kernel_size": 5,
+    "score_thr": 0.01,
+    "show_cornres": false
+  }
+}
