@@ -84,7 +84,7 @@ int calibrate_stereo(const std::vector<cv::Mat>& images_1,
   // extract corners
   std::vector<std::vector<cv::Point2d>> image_points_1, image_points_2, world_points;
   extract_res = std::move(extract_corners_stereo(images_1, images_2, image_points_1, image_points_2, world_points, params));
-  if(world_points.size() < 6) {
+  if(world_points.size() < 4) {
     return -1;
   }
 

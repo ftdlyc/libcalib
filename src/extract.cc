@@ -57,8 +57,8 @@ int find_pattern(const std::vector<std::vector<int>>& chessboard,
   }
 
   if(pos.size() != 1) return -1;
-  x     = std::get<0>(pos[0]);
-  y     = std::get<1>(pos[0]);
+  x = std::get<0>(pos[0]);
+  y = std::get<1>(pos[0]);
   angle = std::get<2>(pos[0]);
   return 0;
 }
@@ -79,8 +79,8 @@ int rotate_chessboard(const std::vector<std::vector<int>>& src,
       }
     }
     int tmp = x;
-    x       = src.size() - 1 - y;
-    y       = tmp;
+    x = src.size() - 1 - y;
+    y = tmp;
     break;
   }
   case 2: {
@@ -102,8 +102,8 @@ int rotate_chessboard(const std::vector<std::vector<int>>& src,
       }
     }
     int tmp = x;
-    x       = y;
-    y       = src[0].size() - 1 - tmp;
+    x = y;
+    y = src[0].size() - 1 - tmp;
     break;
   }
   }
@@ -206,7 +206,7 @@ std::vector<int> extract_corners(const std::vector<cv::Mat>& images,
                   return d1.num > d2.num;
                 });
 
-      res[i]    = std::min(params.num_boards, (int)deltilles.size());
+      res[i] = std::min(params.num_boards, (int)deltilles.size());
       double dx = params.pattern_size;
       double dy = params.pattern_size / 2.0 * std::sqrt(3);
       for(int j = 0; j < res[i]; ++j) {
@@ -272,6 +272,74 @@ std::vector<int> extract_corners_stereo(const std::vector<cv::Mat>& images_1,
     cbdetect::find_corners(images_2[i], chessboad_corners_2, params.camera2.detect_params);
     cbdetect::boards_from_corners(images_2[i], chessboad_corners_2, chessboards_2, params.camera2.detect_params);
 
+    if(chessboards_1.empty() || chessboards_2.empty()) {
+      continue;
+    }
+
+    if(params.num_boards == 1) {
+      std::sort(chessboards_1.begin(), chessboards_1.end(),
+                [](const cbdetect::Board& b1, const cbdetect::Board& b2) {
+                  return b1.num > b2.num;
+                });
+      std::sort(chessboards_2.begin(), chessboards_2.end(),
+                [](const cbdetect::Board& b1, const cbdetect::Board& b2) {
+                  return b1.num > b2.num;
+                });
+    } else {
+      std::sort(chessboards_1.begin(), chessboards_1.end(), [&](const cbdetect::Board& b1, const cbdetect::Board& b2) -> bool {
+        if(b1.num == 0) {
+          return false;
+        } else if(b2.num == 0) {
+          return true;
+        } else {
+          const auto& chessboard_1 = b1.idx;
+          const auto& chessboard_2 = b2.idx;
+          cv::Point2d p1(0., 0.), p2(0., 0.);
+          for(int j = 0; j < chessboard_1.size(); ++j) {
+            for(int i = 0; i < chessboard_1[0].size(); ++i) {
+              if(chessboard_1[j][i] < 0) continue;
+              p1 += chessboad_corners_1.p[chessboard_1[j][i]];
+            }
+          }
+          for(int j = 0; j < chessboard_2.size(); ++j) {
+            for(int i = 0; i < chessboard_2[0].size(); ++i) {
+              if(chessboard_2[j][i] < 0) continue;
+              p2 += chessboad_corners_1.p[chessboard_2[j][i]];
+            }
+          }
+          p1 /= b1.num;
+          p2 /= b2.num;
+          return (2 * p1.y + p1.x) < (2 * p2.y + p2.x);
+        }
+      });
+      std::sort(chessboards_2.begin(), chessboards_2.end(), [&](const cbdetect::Board& b1, const cbdetect::Board& b2) -> bool {
+        if(b1.num == 0) {
+          return false;
+        } else if(b2.num == 0) {
+          return true;
+        } else {
+          const auto& chessboard_1 = b1.idx;
+          const auto& chessboard_2 = b2.idx;
+          cv::Point2d p1(0., 0.), p2(0., 0.);
+          for(int j = 0; j < chessboard_1.size(); ++j) {
+            for(int i = 0; i < chessboard_1[0].size(); ++i) {
+              if(chessboard_1[j][i] < 0) continue;
+              p1 += chessboad_corners_2.p[chessboard_1[j][i]];
+            }
+          }
+          for(int j = 0; j < chessboard_2.size(); ++j) {
+            for(int i = 0; i < chessboard_2[0].size(); ++i) {
+              if(chessboard_2[j][i] < 0) continue;
+              p2 += chessboad_corners_2.p[chessboard_2[j][i]];
+            }
+          }
+          p1 /= b1.num;
+          p2 /= b2.num;
+          return (2 * p1.y + p1.x) < (2 * p2.y + p2.x);
+        }
+      });
+    }
+
     if(params.camera1.show_cornres) {
       cbdetect::plot_boards(images_1[i], chessboad_corners_1, chessboards_1, params.camera1.detect_params);
     }
@@ -279,21 +347,8 @@ std::vector<int> extract_corners_stereo(const std::vector<cv::Mat>& images_1,
       cbdetect::plot_boards(images_2[i], chessboad_corners_2, chessboards_2, params.camera1.detect_params);
     }
 
-    if(chessboards_1.empty() || chessboards_2.empty()) {
-      continue;
-    }
-
-    std::sort(chessboards_1.begin(), chessboards_1.end(),
-              [](const cbdetect::Board& b1, const cbdetect::Board& b2) {
-                return b1.num > b2.num;
-              });
-    std::sort(chessboards_2.begin(), chessboards_2.end(),
-              [](const cbdetect::Board& b1, const cbdetect::Board& b2) {
-                return b1.num > b2.num;
-              });
-
-    int n  = std::min<int>(chessboards_1.size(), chessboards_2.size());
-    n      = std::min<int>(n, params.num_boards);
+    int n = std::min<int>(chessboards_1.size(), chessboards_2.size());
+    n = std::min<int>(n, params.num_boards);
     res[i] = 0;
 
     if(params.pattern_type == 0) { // simple full match
