@@ -5,7 +5,7 @@ This repository contains some sources to calibrate stereo cameras.
 #### Dependencies
 - OpenCV
 - Eigen3
-- [Ceres](https://github.com/ceres-solver/ceres-solver)
+- [Ceres](https://github.com/ceres-solver/ceres-solver), version 1.4.0
 - [Rapidjson](https://github.com/Tencent/rapidjson)
 - [Libcbdetect](https://github.com/ftdlyc/libcbdetect)
 
